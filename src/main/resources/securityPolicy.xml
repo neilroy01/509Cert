@@ -1,0 +1,30 @@
+<beans>
+    <bean id="wsSecurityInterceptor"
+          class="org.springframework.ws.soap.security.xwss.XwsSecurityInterceptor">
+        <property name="policyConfiguration" value="classpath:securityPolicy.xml"/>
+        <property name="callbackHandlers">
+            <list>
+                <ref bean="certificateHandler"/>
+                <ref bean="authenticationHandler"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="springSecurityCertificateHandler"
+          class="org.springframework.ws.soap.security.xwss.callback.SpringCertificateValidationCallbackHandler">
+        <property name="authenticationManager" ref="authenticationManager"/>
+    </bean>
+
+    <bean id="authenticationManager"
+          class="org.springframework.security.providers.ProviderManager">
+        <property name="providers">
+            <bean class="org.springframework.security.providers.x509.X509AuthenticationProvider">
+                <property name="x509AuthoritiesPopulator">
+                    <bean class="org.springframework.security.providers.x509.populator.DaoX509AuthoritiesPopulator">
+                        <property name="userDetailsService" ref="userDetailsService"/>
+                    </bean>
+                </property>
+            </bean>
+        </property>
+    </bean>
+</beans>

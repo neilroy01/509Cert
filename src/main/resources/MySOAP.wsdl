@@ -1,0 +1,47 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://www.service-now.com/MySOAP" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" targetNamespace="http://www.service-now.com/MySOAP">
+<wsdl:types>
+<xsd:schema elementFormDefault="unqualified" targetNamespace="http://www.service-now.com/MySOAP">
+<xsd:element name="execute">
+<xsd:complexType>
+<xsd:sequence/>
+</xsd:complexType>
+</xsd:element>
+<xsd:element name="executeResponse">
+<xsd:complexType>
+<xsd:sequence>
+<xsd:element maxOccurs="1" minOccurs="0" name="result" type="xsd:string"/>
+</xsd:sequence>
+</xsd:complexType>
+</xsd:element>
+</xsd:schema>
+</wsdl:types>
+<wsdl:message name="executeSoapIn">
+<wsdl:part name="MySOAP" element="tns:execute"> </wsdl:part>
+</wsdl:message>
+<wsdl:message name="executeSoapOut">
+<wsdl:part name="MySOAP" element="tns:executeResponse"> </wsdl:part>
+</wsdl:message>
+<wsdl:portType name="ServiceNowSoap">
+<wsdl:operation name="execute">
+<wsdl:input message="tns:executeSoapIn"> </wsdl:input>
+<wsdl:output message="tns:executeSoapOut"> </wsdl:output>
+</wsdl:operation>
+</wsdl:portType>
+<wsdl:binding name="ServiceNowSoap" type="tns:ServiceNowSoap">
+<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+<wsdl:operation name="execute">
+<soap:operation soapAction="http://www.service-now.com/MySOAP/execute" style="document"/>
+<wsdl:input>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+</wsdl:binding>
+<wsdl:service name="ServiceNow_MySOAP">
+<wsdl:port name="ServiceNowSoap" binding="tns:ServiceNowSoap">
+<soap:address location="https://dev50463.service-now.com/MySOAP.do?SOAP"/>
+</wsdl:port>
+</wsdl:service>
+</wsdl:definitions>
