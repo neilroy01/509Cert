@@ -1,4 +1,4 @@
-package com.example.one;
+package com.accenture.one;
 
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 

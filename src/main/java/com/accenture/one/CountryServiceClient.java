@@ -1,4 +1,4 @@
-package com.example.one;
+package com.accenture.one;
 
 import org.springframework.ws.client.core.support.WebServiceGatewaySupport;
 

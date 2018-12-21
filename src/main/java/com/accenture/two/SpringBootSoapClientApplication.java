@@ -1,14 +1,4 @@
-package com.example.two;
-
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-
-import com.service_now.mysoap.Execute;
-import com.service_now.mysoap.ExecuteResponse;
+package com.accenture.two;
 
 //@SpringBootApplication
 //@ComponentScan({"com.example.two"})

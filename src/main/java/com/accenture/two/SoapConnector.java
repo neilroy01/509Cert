@@ -1,4 +1,4 @@
-package com.example.two;
+package com.accenture.two;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
