@@ -1,14 +1,14 @@
 package com.accenture.certificate.config;
 
-import com.accenture.two.SoapConnector;
+import com.accenture.certificate.connector.SoapConnector;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.wss4j.dom.handler.WSHandlerConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
@@ -16,20 +16,29 @@ import org.springframework.ws.soap.axiom.AxiomSoapMessageFactory;
 import org.springframework.ws.soap.security.wss4j2.Wss4jSecurityInterceptor;
 import org.springframework.ws.soap.security.wss4j2.support.CryptoFactoryBean;
 import org.springframework.ws.transport.http.HttpComponentsMessageSender;
-import org.springframework.ws.transport.http.HttpsUrlConnectionMessageSender;
 
-import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.nio.charset.StandardCharsets;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Base64;
 
 @Configuration
 public class WsClientConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(WsClientConfiguration.class);
+    private static final String DIRECT_REFERENCE = "DirectReference";
+    private static final String SKI_KEY_IDENTIFIER = "SKIKeyIdentifier";
 
+    @Value("${client.keystore}")
+    public String keyStore;
+
+    @Value("${client.keystorepassword}")
+    public String keyStorePassword;
+
+    @Value("${client.keystorealias}")
+    public String keyStoreAlias;
+
+    @Value("${client.basicauthuser}")
+    public String basicAuthUser;
+
+    @Value("${client.basicauthpassword}")
+    public String basicAuthPassword;
 
     @Bean
     public SoapConnector getSoapConnector() throws Exception {
@@ -42,12 +51,19 @@ public class WsClientConfiguration {
     @Bean
     public Wss4jSecurityInterceptor securityInterceptor() throws Exception {
         Wss4jSecurityInterceptor securityInterceptor = new Wss4jSecurityInterceptor();
-        // set security actions "Timestamp Signature Encrypt "
+        // set security actions "Timestamp Signature"
+
+
         securityInterceptor.setSecurementActions(
                 WSHandlerConstants.TIMESTAMP + " " +
-                        WSHandlerConstants.SIGNATURE);
-        securityInterceptor.setSecurementUsername("snclient");
-        securityInterceptor.setSecurementPassword("abcd1234");
+                        WSHandlerConstants.SIGNATURE + " " +
+                        WSHandlerConstants.USERNAME_TOKEN);
+        securityInterceptor.setSecurementUsername(basicAuthUser);
+        securityInterceptor.setSecurementPassword(basicAuthPassword);
+        securityInterceptor.setSecurementEncryptionKeyIdentifier(SKI_KEY_IDENTIFIER);
+        securityInterceptor.setSecurementSignatureKeyIdentifier(DIRECT_REFERENCE);
+
+        securityInterceptor.setSecurementSignatureUser(keyStoreAlias);
 
         // sign the request
         securityInterceptor.setSecurementSignatureCrypto(getCryptoFactoryBean().getObject());
@@ -71,90 +87,26 @@ public class WsClientConfiguration {
     @Bean
     AxiomSoapMessageFactory messageFactory() {
         AxiomSoapMessageFactory messageFactory = new AxiomSoapMessageFactory();
+//        messageFactory.setSoapVersion(SoapVersion.SOAP_12);
         messageFactory.setPayloadCaching(true);
         return messageFactory;
     }
 
-//    @Bean
-//    public HttpsUrlConnectionMessageSender defaultMwMessageSender() throws Exception {
-//        Resource keyStore = new ClassPathResource("snclient.jks");
-//        KeyStore ks = KeyStore.getInstance("JKS");
-//        ks.load(keyStore.getInputStream(), "abcd1234".toCharArray());
-//
-//        logger.info("Loaded keystore: " + keyStore.getURI().toString());
-//        try {
-//            keyStore.getInputStream().close();
-//        } catch (IOException e) {
-//        }
-//        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-//        keyManagerFactory.init(ks, "abcd1234".toCharArray());
-//
-//        Resource trustStore = new ClassPathResource("truststore.jks");
-//        KeyStore ts = KeyStore.getInstance("JKS");
-//        ts.load(trustStore.getInputStream(), "abcd1234".toCharArray());
-//        logger.info("Loaded trustStore: " + trustStore.getURI().toString());
-//        trustStore.getInputStream().close();
-//        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-//        trustManagerFactory.init(ts);
-//
-//        HttpsUrlConnectionMessageSender messageSender = new BasicAuthHttpsConnectionMessageSender(
-//                "wss_integration_usr", "abcd1234");
-//
-//        messageSender.setKeyManagers(keyManagerFactory.getKeyManagers());
-////        messageSender.setTrustManagers(trustManagerFactory.getTrustManagers());
-//        messageSender.setTrustManagers(new TrustManager[]{new UnTrustworthyTrustManager()});
-//
-//        // otherwise: java.security.cert.CertificateException: No name matching localhost found
-//        messageSender.setHostnameVerifier((hostname, sslSession) -> {
-//            return true;
-//        });
-//
-//        return messageSender;
-//    }
-
     @Bean
     public HttpComponentsMessageSender defaultMwMessageSender() {
         HttpComponentsMessageSender messageSender = new HttpComponentsMessageSender();
-        messageSender.setCredentials(new UsernamePasswordCredentials("wss_integration_usr", "abcd1234"));
+        messageSender.setCredentials(new UsernamePasswordCredentials(basicAuthUser,
+                basicAuthPassword));
         return messageSender;
     }
 
     @Bean
     public CryptoFactoryBean getCryptoFactoryBean() throws IOException {
         CryptoFactoryBean cryptoFactoryBean = new CryptoFactoryBean();
-        cryptoFactoryBean.setKeyStorePassword("abcd1234");
-        cryptoFactoryBean.setKeyStoreLocation(
-                new ClassPathResource("snclient.keystore"));
+        cryptoFactoryBean.setKeyStorePassword(keyStorePassword);
+        cryptoFactoryBean.setKeyStoreLocation(new ClassPathResource(keyStore));
+        cryptoFactoryBean.setDefaultX509Alias(keyStoreAlias);
         return cryptoFactoryBean;
     }
 
-    // You might need org.springframework.ws:spring-ws-support in order to
-    // have HttpsUrlConnectionMessageSender
-    public final class BasicAuthHttpsConnectionMessageSender extends HttpsUrlConnectionMessageSender {
-        private String b64Creds;
-
-        public BasicAuthHttpsConnectionMessageSender(String username, String password) {
-            b64Creds = Base64.getUrlEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
-        }
-
-        @Override
-        protected void prepareConnection(HttpURLConnection connection) throws IOException {
-            connection.setRequestProperty(HttpHeaders.AUTHORIZATION, String.format("Basic %s", b64Creds));
-            super.prepareConnection(connection);
-        }
-
-    }
-
-    class UnTrustworthyTrustManager
-            implements X509TrustManager {
-        public void checkClientTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
-        }
-
-        public void checkServerTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
-        }
-
-        public X509Certificate[] getAcceptedIssuers() {
-            return null;
-        }
-    }
 }

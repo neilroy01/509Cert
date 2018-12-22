@@ -18,14 +18,14 @@ public class InstallCert {
         String[] c = args[0].split(":");
         host = c[0];
         port = (c.length == 1) ? 443 : Integer.parseInt(c[1]);
-        String p = (args.length == 1) ? "abcd1234" : args[1];
+        String p = (args.length == 1) ? "changeit" : args[1];
         passphrase = p.toCharArray();
     } else {
         System.out.println("Usage: java InstallCert <host>[:port] [passphrase]");
         return;
     }
 
-    File file = new File("C:\\Users\\neil.roy\\Documents\\boeing\\snclient.jks");
+    File file = new File("jssecacerts");
     if (file.isFile() == false) {
         char SEP = File.separatorChar;
         File dir = new File(System.getProperty("java.home") + SEP
@@ -104,7 +104,7 @@ public class InstallCert {
     String alias = host + "-" + (k + 1);
     ks.setCertificateEntry(alias, cert);
 
-    OutputStream out = new FileOutputStream("C:\\Users\\neil.roy\\Documents\\boeing\\snclient.jks");
+    OutputStream out = new FileOutputStream("jssecacerts");
     ks.store(out, passphrase);
     out.close();
 
