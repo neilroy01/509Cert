@@ -56,10 +56,12 @@ public class WsClientConfiguration {
 
         securityInterceptor.setSecurementActions(
                 WSHandlerConstants.TIMESTAMP + " " +
-                        WSHandlerConstants.SIGNATURE + " " +
-                        WSHandlerConstants.USERNAME_TOKEN);
+                        WSHandlerConstants.SIGNATURE); //+ " " +
+//                        WSHandlerConstants.USERNAME_TOKEN);
+        //Not sure if this is required, basic auth is set in the message sender
         securityInterceptor.setSecurementUsername(basicAuthUser);
-        securityInterceptor.setSecurementPassword(basicAuthPassword);
+        //for some reason, this has to be the password for the keystore
+        securityInterceptor.setSecurementPassword(keyStorePassword);
         securityInterceptor.setSecurementEncryptionKeyIdentifier(SKI_KEY_IDENTIFIER);
         securityInterceptor.setSecurementSignatureKeyIdentifier(DIRECT_REFERENCE);
 
